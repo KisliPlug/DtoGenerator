@@ -1,4 +1,4 @@
-﻿namespace Orders.CodeGen;
+﻿namespace DtoGenerator.Generator;
 
 public static class Extensions
 {

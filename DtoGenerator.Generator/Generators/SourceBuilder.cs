@@ -1,20 +1,25 @@
 ﻿using System.Text;
 
-namespace Orders.CodeGen.Generators;
+namespace DtoGenerator.Generator.Generators;
 
 public class SourceBuilder
 {
-    private readonly StringBuilder _stringBuilder;
-    private int _indentLevel;
-    public const string Tab = "    ";
-    public const string CloseBracket = "}";
-    public const string OpenBracket = "{";
-
     public SourceBuilder()
     {
         _stringBuilder = new StringBuilder();
         _indentLevel = 0;
     }
+
+#region Private fields
+
+    private int _indentLevel;
+    private readonly StringBuilder _stringBuilder;
+
+#endregion
+
+    public const string CloseBracket = "}";
+    public const string OpenBracket = "{";
+    public const string Tab = "    ";
 
     public SourceBuilder WriteLine(string line)
     {

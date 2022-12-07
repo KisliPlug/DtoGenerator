@@ -1,7 +1,7 @@
-﻿using Microsoft.CodeAnalysis;
-using Orders.CodeGen.Recievers;
+﻿using DtoGenerator.Generator.Recievers;
+using Microsoft.CodeAnalysis;
 
-namespace Orders.CodeGen.Generators.Handlers.Interfaces;
+namespace DtoGenerator.Generator.Generators.Handlers.Interfaces;
 
 public interface IDtoHandler<in T> where T : SyntaxNode
 {

@@ -1,8 +1,8 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Orders.CodeGen.Generators.Handlers.Interfaces;
-using Orders.CodeGen.Recievers;
+﻿using DtoGenerator.Generator.Generators.Handlers.Interfaces;
+using DtoGenerator.Generator.Recievers;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Orders.CodeGen.Generators.Handlers;
+namespace DtoGenerator.Generator.Generators.Handlers;
 
 public class ClassDtoHandler : AbstractDtoHandler<ClassDeclarationSyntax>
 {

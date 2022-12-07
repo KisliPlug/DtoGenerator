@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace CodeGen.Tests.Resources
+namespace DtoGenerator.Tests.Resources
 {
     // [Request("")]
     // [Request("Create", nameof(Id), nameof(RegistrationTime), nameof(Orders))]
@@ -21,7 +21,7 @@ namespace CodeGen.Tests.Resources
 
     [Request("")]
     [Request("Create", nameof(Id), nameof(RegistrationTime), nameof(Orders))]
-    [RequestAttribute("Update", nameof(Id), nameof(RegistrationTime))]
+    [Request("Update", nameof(Id), nameof(RegistrationTime))]
     public record ClientRecord([Required] Guid Id, List<Guid> Orders, string Name, string Description,[Required][Range(0,99999)] decimal Price,DateTimeOffset
     RegistrationTime);
 

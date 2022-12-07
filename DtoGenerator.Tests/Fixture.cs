@@ -1,8 +1,4 @@
-﻿using System.Reflection;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-
-namespace CodeGen.Tests;
+﻿namespace DtoGenerator.Tests;
 
 public static class Fixture
 {

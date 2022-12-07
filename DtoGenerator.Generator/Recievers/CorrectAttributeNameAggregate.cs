@@ -1,13 +1,12 @@
-﻿using System.Diagnostics;
+﻿using DtoGenerator.Infra;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Orders.CodeGen.Infra;
 
-namespace Orders.CodeGen.Recievers;
+namespace DtoGenerator.Generator.Recievers;
 
 public class CorrectAttributeNameAggregate : ISyntaxReceiver
 {
-    public List<ClassDeclarationSyntax> CapturesClasses { get; } = new();
+#region Explicit interface implementation
 
     public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
     {
@@ -21,4 +20,8 @@ public class CorrectAttributeNameAggregate : ISyntaxReceiver
             CapturesClasses.Add(attr);
         }
     }
+
+#endregion
+
+    public List<ClassDeclarationSyntax> CapturesClasses { get; } = new();
 }

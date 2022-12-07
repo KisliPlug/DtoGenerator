@@ -1,6 +1,4 @@
-﻿namespace Orders.CodeGen.Infra;
+﻿namespace DtoGenerator.Infra;
 
 public interface IPropertyConfig
-{
-
-}
+{}

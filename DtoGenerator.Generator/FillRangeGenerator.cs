@@ -1,10 +1,7 @@
-﻿using System.Collections;
+﻿using DtoGenerator.Generator.Recievers;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Orders.CodeGen.Generators;
-using Orders.CodeGen.Recievers;
 
-namespace Orders.CodeGen;
+namespace DtoGenerator.Generator;
 
 [Generator]
 public class FillRangeGen : ISourceGenerator
@@ -19,7 +16,7 @@ public class FillRangeGen : ISourceGenerator
     public void Execute(GeneratorExecutionContext context)
     {
         "Go".Log();
-        var dtoGenerator = DtoGenerator.Create(context.Compilation.SyntaxTrees);
+        var dtoGenerator = Generators.DtoGenerator.Create(context.Compilation.SyntaxTrees);
         foreach (var dto in dtoGenerator.GenerateDtos())
         {
             context.AddSource($"{dto.FileName}.g.cs", dto.Source);

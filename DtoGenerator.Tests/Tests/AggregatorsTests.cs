@@ -1,18 +1,22 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using DtoGenerator.Generator.Recievers;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using MoreLinq;
-using Orders.CodeGen.Recievers;
 
-namespace CodeGen.Tests.Tests;
+namespace DtoGenerator.Tests.Tests;
 
 public class AggregatorsTests
 {
-    private readonly SyntaxTree[] _trees;
-
     public AggregatorsTests()
     {
         _trees = Directory.GetFiles(@"Resources").Select(x => CSharpSyntaxTree.ParseText(File.ReadAllText(x))).ToArray();
     }
+
+#region Private fields
+
+    private readonly SyntaxTree[] _trees;
+
+#endregion
 
     [Fact]
     public void CorrectAttributeNameAggregateCanFind1Attribute_Test()
@@ -38,5 +42,4 @@ public class AggregatorsTests
         //Assert
         Assert.Equal(3, aggregator.Captures.Count);
     }
-
 }

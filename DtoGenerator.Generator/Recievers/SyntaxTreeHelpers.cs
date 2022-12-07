@@ -1,6 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 
-namespace Orders.CodeGen.Recievers;
+namespace DtoGenerator.Generator.Recievers;
 
 public static class SyntaxTreeHelpers
 {

@@ -1,28 +1,22 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Orders.CodeGen.Recievers;
+namespace DtoGenerator.Generator.Recievers;
 
 public class AttributeAggregate : ISyntaxReceiver
 {
-    private readonly IEnumerable<string> _attributeNames;
-
     public AttributeAggregate(List<ClassDeclarationSyntax> capturesClasses)
     {
         _attributeNames = capturesClasses.SelectMany(GetAtrName);
     }
 
-    private IEnumerable<string> GetAtrName(ClassDeclarationSyntax decl)
-    {
-        var name = decl.Identifier.Text;
-        yield return name;
-        if (name.EndsWith("Attribute"))
-        {
-            yield return name.Replace("Attribute", "");
-        }
-    }
+#region Private fields
 
-    public List<Capture> Captures { get; } = new();
+    private readonly IEnumerable<string> _attributeNames;
+
+#endregion
+
+#region Explicit interface implementation
 
     public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
     {
@@ -41,18 +35,36 @@ public class AttributeAggregate : ISyntaxReceiver
         }
     }
 
+#endregion
+
+    public List<Capture> Captures { get; } = new();
+
+    private IEnumerable<string> GetAtrName(ClassDeclarationSyntax decl)
+    {
+        var name = decl.Identifier.Text;
+        yield return name;
+        if (name.EndsWith("Attribute"))
+        {
+            yield return name.Replace("Attribute", "");
+        }
+    }
+
     public record Capture(SyntaxNode Node, DtoGeneratorAttribute Attr);
 }
 
 public class DtoGeneratorAttribute
 {
-    private readonly AttributeSyntax _attr;
-
     public DtoGeneratorAttribute(AttributeSyntax attr)
     {
         _attr = attr;
         Arguments = _attr.ArgumentList!.Arguments;
     }
+
+#region Private fields
+
+    private readonly AttributeSyntax _attr;
+
+#endregion
 
     public SeparatedSyntaxList<AttributeArgumentSyntax> Arguments { get; }
 }

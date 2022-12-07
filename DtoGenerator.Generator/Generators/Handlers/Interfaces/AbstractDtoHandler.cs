@@ -1,19 +1,23 @@
 using System.Collections;
+using DtoGenerator.Generator.Recievers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MoreLinq;
-using Orders.CodeGen.Recievers;
 
-namespace Orders.CodeGen.Generators.Handlers.Interfaces;
+namespace DtoGenerator.Generator.Generators.Handlers.Interfaces;
 
 public abstract class AbstractDtoHandler<T> : IDtoHandler<T> where T : SyntaxNode
 {
+#region Explicit interface implementation
+
+    public abstract DtoGenerator.SourceData Generate(T syntax, DtoGeneratorAttribute attr);
+
+#endregion
+
     protected DtoGenerator.SourceData Empty()
     {
         return new DtoGenerator.SourceData("", "");
     }
-
-    public abstract DtoGenerator.SourceData Generate(T syntax, DtoGeneratorAttribute attr);
 
     protected IEnumerable<string> GenerateExtensions(string newName, string hostClassName)
     {
@@ -53,7 +57,6 @@ public abstract class AbstractDtoHandler<T> : IDtoHandler<T> where T : SyntaxNod
 
         return retVal;
     }
-
 
     protected IEnumerable<string> AddOperators(IEnumerable<string> fields, IEnumerable<SyntaxNode> ignored, string from, string to, bool fromDto)
     {
