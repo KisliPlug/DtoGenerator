@@ -2,7 +2,7 @@
 
 public static class Fixture
 {
-    public static string _dirName = "../../../../GenerationTests/";
+    public static string _dirName = "../../../GenerationTests/";
 
     public static void AddSource(string fileName, string source)
     {

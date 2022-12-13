@@ -1,24 +1,38 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <IncludeSymbols>true</IncludeSymbols>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>default</LangVersion>
+    <Title>Generator that help create dto classes and records</Title>
+    <RepositoryUrl>https://github.com/KisliPlug/DtoGenerator</RepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <PackageOutputPath>F:\REPOS\nuget</PackageOutputPath>
+    <PackageVersion>1.0.2</PackageVersion>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="IndexRange" Version="1.0.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.4.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.4.0" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3" PrivateAssets="all" />
-    <PackageReference Include="morelinq" Version="3.3.2" />
+  </ItemGroup>
 
-  
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.8.0" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Output" />
   </ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\DtoGenerator.Infra\DtoGenerator.Infra.csproj" />
+    <!--    <None Include="..\..\LICENSE" Pack="true" PackagePath="" Visible="false" />-->
+    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <!--    <None Include="MapTo.props" Pack="true" PackagePath="build" Visible="false" />-->
   </ItemGroup>
 </Project>

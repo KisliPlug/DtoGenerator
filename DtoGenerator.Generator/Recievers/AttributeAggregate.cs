@@ -49,20 +49,21 @@ public class AttributeAggregate : ISyntaxReceiver
         }
     }
 
-    public record Capture(SyntaxNode Node, DtoGeneratorAttribute Attr);
+    public record Capture(SyntaxNode Node, DtoGeneratorAttribute Attr)
+    {
+        public SyntaxNode Node { get; } = Node;
+        public DtoGeneratorAttribute Attr { get; } = Attr;
+    }
 }
 
 public class DtoGeneratorAttribute
 {
     public DtoGeneratorAttribute(AttributeSyntax attr)
     {
-        _attr = attr;
-        Arguments = _attr.ArgumentList!.Arguments;
+        Arguments = attr.ArgumentList!.Arguments;
     }
 
 #region Private fields
-
-    private readonly AttributeSyntax _attr;
 
 #endregion
 

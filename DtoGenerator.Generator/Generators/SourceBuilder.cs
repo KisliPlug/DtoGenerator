@@ -69,7 +69,7 @@ public class SourceBuilder
 
     public IEnumerable<string> AsList()
     {
-        return _stringBuilder.ToString().Split("\r").SelectMany(x => x.Split("\n")).Where(x => x.Length > 0);
+        return _stringBuilder.ToString().Split('\r').SelectMany(x => x.Split('\n')).Where(x => x.Length > 0);
     }
 
     public SourceBuilder WriteLinesWithOffset(IEnumerable<string> generateExtensions)

@@ -1,4 +1,4 @@
-﻿namespace DtoGenerator.Infra;
+﻿namespace DtoGenerator.Generator;
 
 public interface IPropertyConfig
 {}

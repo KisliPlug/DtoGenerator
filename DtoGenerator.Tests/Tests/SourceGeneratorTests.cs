@@ -18,7 +18,7 @@ public class SourceGeneratorTests
 #endregion
 
     [Fact()]
-    public void TestSouceGeneration_TEST()
+    public void TestSourceGeneration_TEST()
     {
         //Arrange
         var dtoGenerator = Generator.Generators.DtoGenerator.Create(_trees);

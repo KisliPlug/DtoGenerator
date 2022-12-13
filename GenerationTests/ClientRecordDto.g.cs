@@ -1,6 +1,6 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-namespace CodeGen.Tests.Resources
+namespace DtoGenerator.Tests.Resources
 {
     public record ClientRecordDto
     {
@@ -13,26 +13,26 @@ namespace CodeGen.Tests.Resources
         public static explicit operator ClientRecordDto(ClientRecord b)
         {
             return new ClientRecordDto
-            {
-                Id=b.Id,
-                Orders=b.Orders,
-                Name=b.Name,
-                Description=b.Description,
-                Price=b.Price,
-                RegistrationTime=b.RegistrationTime
-            };
+            (
+            Id:b.Id,
+            Orders:b.Orders,
+            Name:b.Name,
+            Description:b.Description,
+            Price:b.Price,
+            RegistrationTime:b.RegistrationTime
+            );
         }
         public static explicit operator ClientRecord(ClientRecordDto b)
         {
             return new ClientRecord
-            {
-                Id=b.Id,
-                Orders=b.Orders,
-                Name=b.Name,
-                Description=b.Description,
-                Price=b.Price,
-                RegistrationTime=b.RegistrationTime
-            };
+            (
+            Id:b.Id,
+            Orders:b.Orders,
+            Name:b.Name,
+            Description:b.Description,
+            Price:b.Price,
+            RegistrationTime:b.RegistrationTime
+            );
         }
         public ClientRecord SetProps(ClientRecord dto)
         {

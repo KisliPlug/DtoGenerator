@@ -40,7 +40,7 @@ public static class NodeExtensions
                  , PropertyDeclarationSyntax tp => tp.Identifier.Text
                  , MemberDeclarationSyntax mb   => mb.ToString()
                  , ParameterSyntax mb           => mb.Identifier.ToString()
-                 , _                            => syntaxNode.ToString().Split(" ").First()
+                 , _                            => syntaxNode.ToString().Split(' ').First()
                };
     }
 

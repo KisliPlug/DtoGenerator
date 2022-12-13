@@ -25,7 +25,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\DtoGenerator.Infra\DtoGenerator.Infra.csproj" />
       <ProjectReference Include="..\DtoGenerator.Generator\DtoGenerator.Generator.csproj" />
     </ItemGroup>
 
@@ -36,6 +35,16 @@
       <Compile Update="Resources\RequestAttribute.cs">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Compile>
+      <Compile Update="Resources\ClientFull.cs">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Compile>
+      <Compile Update="Resources\ClientClass.cs">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="GenerationTests" />
     </ItemGroup>
 
 </Project>

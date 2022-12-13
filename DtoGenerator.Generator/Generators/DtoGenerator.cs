@@ -2,7 +2,7 @@
 using DtoGenerator.Generator.Recievers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using MoreLinq.Extensions;
+
 
 namespace DtoGenerator.Generator.Generators;
 
@@ -36,7 +36,11 @@ public class DtoGenerator
     public IEnumerable<SourceData> GenerateDtos()
     {
         var aggregator = new AttributeAggregate(_generatorAttributes);
-        _trees.ForEach(x => aggregator.RecieveAllNode(x));
+        foreach (var tree in _trees)
+        {
+            aggregator.RecieveAllNode(tree);
+        }
+
         var classDtoGenerator = new ClassDtoHandler();
         var recordDtoGenerator = new RecordDtoHandler();
         foreach (var classCapture in aggregator.Captures)
@@ -50,5 +54,9 @@ public class DtoGenerator
         }
     }
 
-    public record SourceData(string FileName, string Source);
+    public record SourceData(string FileName, string Source)
+    {
+        public string FileName { get; } = FileName;
+        public string Source { get; } = Source;
+    }
 }

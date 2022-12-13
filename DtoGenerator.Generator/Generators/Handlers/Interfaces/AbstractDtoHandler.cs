@@ -2,7 +2,6 @@ using System.Collections;
 using DtoGenerator.Generator.Recievers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using MoreLinq;
 
 namespace DtoGenerator.Generator.Generators.Handlers.Interfaces;
 
@@ -10,9 +9,16 @@ public abstract class AbstractDtoHandler<T> : IDtoHandler<T> where T : SyntaxNod
 {
 #region Explicit interface implementation
 
-    public abstract DtoGenerator.SourceData Generate(T syntax, DtoGeneratorAttribute attr);
+    public DtoGenerator.SourceData Generate(T syntax, DtoGeneratorAttribute attr)
+    {
+        _currentNodeName = syntax.GetName();
+        return GenerateLogic(syntax, attr);
+    }
 
 #endregion
+
+    protected string _currentNodeName = "";
+    public abstract DtoGenerator.SourceData GenerateLogic(T syntax, DtoGeneratorAttribute attr);
 
     protected DtoGenerator.SourceData Empty()
     {
@@ -21,25 +27,33 @@ public abstract class AbstractDtoHandler<T> : IDtoHandler<T> where T : SyntaxNod
 
     protected IEnumerable<string> GenerateExtensions(string newName, string hostClassName)
     {
+        var methodSyntaxes = new List<(string decl, string body)>
+                             {
+                                 ($"public static {newName} As{newName}(this {hostClassName} entity)", $"return ({newName})entity;")
+                               , ($"public static {hostClassName} As{hostClassName}(this {newName} dto)", $"return ({hostClassName})dto;")
+                               , ($"public static IEnumerable<{newName}> As{newName}(this IEnumerable<{hostClassName}> entity)"
+                                , $"return  entity.Select(x=>x.As{newName}());")
+                               , ($"public static IEnumerable<{hostClassName}> As{hostClassName}(this IEnumerable<{newName}> dtos)"
+                                , $"return dtos.Select(x=>x.As{hostClassName}());")
+                             };
         yield return $"public static class {newName}Extensions";
         yield return "{";
-        yield return $"public static {newName} As{newName}(this {hostClassName} entity)";
-        yield return "{";
-        yield return $"return ({newName})entity;";
+        foreach (var methodDescr in methodSyntaxes)
+        {
+            foreach (var line in GenerateMethod(methodDescr.decl, methodDescr.body))
+            {
+                yield return line;
+            }
+        }
+
         yield return "}";
-        ;
-        yield return $"public static {hostClassName} As{hostClassName}(this {newName} dto)";
+    }
+
+    private IEnumerable<string> GenerateMethod(string declaration, string body)
+    {
+        yield return declaration;
         yield return "{";
-        yield return $"return ({hostClassName})dto;";
-        yield return "}";
-        yield return $"public static IEnumerable<{newName}> As{newName}(this IEnumerable<{hostClassName}> entity)";
-        yield return "{";
-        yield return $"return  entity.Select(x=>x.As{newName}());";
-        yield return "}";
-        yield return $"public static IEnumerable<{hostClassName}> As{hostClassName}(this IEnumerable<{newName}> dtos)";
-        yield return "{";
-        yield return $"return dtos.Select(x=>x.As{hostClassName}());";
-        yield return "}";
+        yield return body;
         yield return "}";
     }
 
@@ -58,36 +72,37 @@ public abstract class AbstractDtoHandler<T> : IDtoHandler<T> where T : SyntaxNod
         return retVal;
     }
 
-    protected IEnumerable<string> AddOperators(IEnumerable<string> fields, IEnumerable<SyntaxNode> ignored, string from, string to, bool fromDto)
+    protected IEnumerable<string> AddOperators(IEnumerable<string> fields, IEnumerable<string> ignored, string fromStr, string toStr)
     {
         var dataFields = fields
-                        .Select(x => $"{x}=b.{x}")
+                        .Select(x => $"{x}{AssignConstructorSymbol(toStr)}b.{x}")
                         .ToList();
-        if (!fromDto)
+        foreach (var s in ignored)
         {
-            foreach (var s in ignored.Select(AddIgnoredPropDefaultValueCreator).Where(x => !string.IsNullOrEmpty(x)))
-            {
-                dataFields.Add(s);
-            }
+            dataFields.Add(s);
         }
 
         AddSeparator(dataFields);
-        var toStr = fromDto ? from : to;
-        var fromStr = fromDto ? to : from;
         yield return $"public static explicit operator {toStr}({fromStr} b)";
         yield return "{";
         yield return $"return new {toStr}";
-        yield return "{";
+        yield return GetCreateNewInstanceBracket(true, toStr);
         foreach (var dd in dataFields)
         {
             yield return dd;
         }
 
-        yield return "};";
+        yield return GetCreateNewInstanceBracket(false, toStr);
         yield return "}";
     }
 
-    private void AddSeparator(List<string> dataFields)
+    protected abstract string GetCreateNewInstanceBracket(bool isOpen, string createEntityName);
+
+    protected abstract string AssignConstructorSymbol(string createEntityName);
+
+    protected abstract string GetDataType();
+
+    protected void AddSeparator(List<string> dataFields)
     {
         for (int i = 0; i < dataFields.Count - 1; i++)
         {
@@ -106,7 +121,7 @@ public abstract class AbstractDtoHandler<T> : IDtoHandler<T> where T : SyntaxNod
         }
         else if (s is ParameterSyntax parameter)
         {
-            propType = parameter.Type.ToString();
+            propType = parameter.Type?.ToString();
             name = parameter.Identifier.Text;
         }
 
@@ -130,51 +145,17 @@ public abstract class AbstractDtoHandler<T> : IDtoHandler<T> where T : SyntaxNod
             return "";
         }
 
-        return $"{name}={add}";
+        return $"{name}{AssignConstructorSymbol(_currentNodeName)}{add}";
     }
 
-    protected IEnumerable<string> AddPropsRecord(IEnumerable<string> fields, string pocoName, string dtoName, bool set)
-    {
-        var retInditefer = set ? "dto" : "this";
+    protected abstract IEnumerable<string> AddProps(IEnumerable<string> fields, string name, string dtoName, bool set);
 
-        string setProp(string propName)
-        {
-            return $"{propName}=this.{propName}";
-        }
 
-        string getProp(string propName)
-        {
-            return $"{propName}=dto.{propName}";
-        }
 
-        var funcPrefix = set ? "Set" : "Get";
-        Func<string, string> func = set ? setProp : getProp;
-        var dataFields = fields
-           .Select(x => func(x))
-                        .ToList()
-                        .PipeAct(AddSeparator);
 
-        var retType = set ? dtoName : pocoName;
-        yield return $"public {retType} {funcPrefix}Props({dtoName} dto)";
-        yield return "{";
-        yield return $"return {retInditefer} with";
-        yield return "{";
-        foreach (var field in dataFields)
-        {
-            yield return field;
-        }
 
-        yield return "};";
-        yield return "}";
 
-        //         return $@"
-        //      public {retType} {funcPrefix}Props({dtoName} dto)
-        //     {{
-        //
-        //            return  {retInditefer} with {{{string.Join("\t\n,", dataFields)}}};
-        //
-        //     }}";
-    }
+
 
     protected bool CollectAttributeAgrs(DtoGeneratorAttribute attr, out List<string> attrValues)
     {
@@ -194,31 +175,7 @@ public abstract class AbstractDtoHandler<T> : IDtoHandler<T> where T : SyntaxNod
         return (attrValues.Skip(1).ToList(), $"{attrValues.First()}{syntax.GetName()}Dto", GetNamespaceName(syntax));
     }
 
-    protected IEnumerable<string> AddProps(IEnumerable<string> fields, string name, bool set)
-    {
-        string setProp(string propName)
-        {
-            return $"b.{propName}={propName};";
-        }
 
-        string getProp(string propName)
-        {
-            return $"{propName}=b.{propName};";
-        }
-
-        var funcPrefix = set ? "Set" : "Get";
-        Func<string, string> func = set ? setProp : getProp;
-        var dataFields = fields
-           .Select(x => func(x));
-        yield return $"public   void  {funcPrefix}Props({name} b)";
-        yield return "{";
-        foreach (var field in dataFields)
-        {
-            yield return field;
-        }
-
-        yield return "}";
-    }
 
     protected ( List<SyntaxNode>? nodes, List<string>? props, List<SyntaxNode>? ignored) CollectRecordFields(RecordDeclarationSyntax rce
                                                                                                            , List<string> ignorProps)
@@ -229,10 +186,10 @@ public abstract class AbstractDtoHandler<T> : IDtoHandler<T> where T : SyntaxNod
         if (rce.Members is { Count: > 0 } members)
         {
             ignored = members
-                     .Where(x => ignorProps.Any(y => x.ToFullString().Split(" ").Any(z => z.Equals(y))))
+                     .Where(x => ignorProps.Any(y => x.GetName().Equals(y)))
                      .ToList<SyntaxNode>();
             membersData = members
-                         .Where(x => !ignorProps.Any(y => x.ToFullString().Split(" ").Any(z => z.Equals(y))))
+                         .Where(x => !ignorProps.Any(y => x.GetName().Equals(y)))
                          .ToList<SyntaxNode>();
             dd = membersData.Select(x => x.ToString())
                             .ToList();
@@ -245,12 +202,12 @@ public abstract class AbstractDtoHandler<T> : IDtoHandler<T> where T : SyntaxNod
         if (rce.ParameterList is { } pars)
         {
             ignored = pars.Parameters
-                          .Where(x => ignorProps.Any(y => x.ToFullString().Split(" ").Any(z => z.Equals(y))))
+                          .Where(x => ignorProps.Any(y => x.GetName().Equals(y)))
                           .ToList<SyntaxNode>();
             var parameters = pars.Parameters
-                                 .Where(x => !ignorProps.Any(y => x.ToFullString().Split(" ").Any(z => z.Equals(y))))
+                                 .Where(x => !ignorProps.Any(y => x.GetName().Equals(y)))
                                  .ToArray();
-            parameters.ForEach(x => membersData.Add(x));
+            membersData.AddRange(parameters);
             dd = parameters.Select(x => $"{GetAttributes(x)}public {x.Type} {x.GetName()} {{get;init;}}")
                            .ToList();
         }
@@ -261,5 +218,36 @@ public abstract class AbstractDtoHandler<T> : IDtoHandler<T> where T : SyntaxNod
     private string GetAttributes(ParameterSyntax parameterSyntax)
     {
         return parameterSyntax.AttributeLists.Select(x => x.ToString()).PipeO(x => string.Join(" ", x));
+    }
+
+    protected DtoGenerator.SourceData GenerateSyntax(string namespaceName
+                                                   , string dtoName
+                                                   , IEnumerable<string> propertyDescriptions
+                                                   , IEnumerable<string>  propertyNames
+                                                   , List<string>? ignoredPropsSyntax)
+    {
+        var builder = new SourceBuilder();
+        builder.WriteLine("using System.ComponentModel;")
+               .WriteLine("using System.ComponentModel.DataAnnotations;")
+               .WriteLine($"namespace {namespaceName}")
+               .OpenBrace()
+               .WriteLine($"public {GetDataType()} {dtoName}")
+               .OpenBrace()
+               .WriteLines(propertyDescriptions)
+               .WriteLinesWithOffset(AddOperators(propertyNames
+                                                , ignoredPropsSyntax
+                                                , dtoName
+                                                , _currentNodeName))
+               .WriteLinesWithOffset(AddOperators(propertyNames
+                                                , Array.Empty<string>()
+                                                , _currentNodeName
+                                                , dtoName))
+               .WriteLinesWithOffset(AddProps(propertyNames, dtoName, _currentNodeName, true))
+               .WriteLinesWithOffset(AddProps(propertyNames, dtoName, _currentNodeName, false))
+               .CloseBrace()
+               .WriteLinesWithOffset(GenerateExtensions(dtoName, _currentNodeName))
+               .CloseBrace()
+               .WriteLine("");
+        return new DtoGenerator.SourceData(dtoName, builder.ToString());
     }
 }
