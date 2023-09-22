@@ -1,14 +1,14 @@
+
+
 using DtoGenerator.Generator;
 
 namespace TestNuget.Resources;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = true)]
-public class RequestAttribute : Attribute,IPropertyConfig
+public class DtoAttribute : Attribute,IPropertyConfig
 {
-    public RequestAttribute(string prefix, params string[] hideProps)
+    public DtoAttribute(string prefix, params string[] hideProps)
     { }
 
-    public DateTime DateTimeConstructor => DateTime.Now;
-    public DateTimeOffset DateTimeOffsetConstructor => DateTimeOffset.Now;
-    public Guid GuidConstructor => Guid.NewGuid();
+
 }

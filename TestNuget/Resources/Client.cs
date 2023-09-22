@@ -19,9 +19,9 @@ namespace TestNuget.Resources
     //     public DateTimeOffset RegistrationTime { get; set; }
     // }
 
-    [Request("")]
-    [Request("Create", nameof(Id), nameof(RegistrationTime), nameof(Orders))]
-    [Request("Update", nameof(Id), nameof(RegistrationTime))]
+    [Dto("")]
+    [Dto("Create", nameof(Id), nameof(RegistrationTime), nameof(Orders))]
+    [Dto("Update", nameof(Id), nameof(RegistrationTime))]
     public record ClientRecord([Required] Guid Id, List<Guid> Orders, string Name, string Description,[Required][Range(0,99999)] decimal Price,DateTimeOffset
     RegistrationTime);
 

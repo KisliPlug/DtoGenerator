@@ -16,7 +16,7 @@ public class RecordDtoHandler : AbstractDtoHandler<RecordDeclarationSyntax>
         }
 
         _haveFullSyntax = IsFullSyntaxRecord(syntax);
-        var (ignoredNames, newName, namespaceName) = GetCreateionData(syntax, attrValues);
+        var (ignoredNames, newName, namespaceName) = GetCreateionData(syntax, attrValues );
         var (membersData, propertyDescriptions, ignoredFields) = CollectRecordFields(syntax, ignoredNames);
 
         if (membersData is null || propertyDescriptions is null)

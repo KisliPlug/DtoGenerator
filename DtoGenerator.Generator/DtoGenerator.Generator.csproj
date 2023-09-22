@@ -2,15 +2,15 @@
 
   <PropertyGroup>
     <IncludeSymbols>true</IncludeSymbols>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>default</LangVersion>
     <Title>Generator that help create dto classes and records</Title>
     <RepositoryUrl>https://github.com/KisliPlug/DtoGenerator</RepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
-    <PackageOutputPath>F:\REPOS\nuget</PackageOutputPath>
-    <PackageVersion>1.0.2</PackageVersion>
+    <PackageOutputPath>A:\REPOS\nuget</PackageOutputPath>
+    <PackageVersion>1.0.1</PackageVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>

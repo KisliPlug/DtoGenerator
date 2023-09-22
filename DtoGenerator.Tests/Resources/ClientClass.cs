@@ -2,9 +2,10 @@
 
 namespace DtoGenerator.Tests.Resources
 {
-    [Request("")]
-    [Request("Create", nameof(Id), nameof(RegistrationTime), nameof(Orders))]
-    [Request("Update", nameof(Id), nameof(RegistrationTime))]
+    [Dto("")]
+    [Dto("Create", nameof(Id), nameof(RegistrationTime), nameof(Orders))]
+    [Dto("Update", nameof(Id), nameof(RegistrationTime))]
+    [Dto("Update", nameof(Id), nameof(RegistrationTime))]
     public class ClientClass
     {
         [Required]

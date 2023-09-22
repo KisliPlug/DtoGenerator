@@ -18,6 +18,8 @@ public abstract class AbstractDtoHandler<T> : IDtoHandler<T> where T : SyntaxNod
 #endregion
 
     protected string _currentNodeName = "";
+    protected string _suffix;
+    protected string _prefix;
     public abstract DtoGenerator.SourceData GenerateLogic(T syntax, DtoGeneratorAttribute attr);
 
     protected DtoGenerator.SourceData Empty()
@@ -27,15 +29,16 @@ public abstract class AbstractDtoHandler<T> : IDtoHandler<T> where T : SyntaxNod
 
     protected IEnumerable<string> GenerateExtensions(string newName, string hostClassName)
     {
+        var entName = $"{_prefix}{_suffix}";
         var methodSyntaxes = new List<(string decl, string body)>
-                             {
-                                 ($"public static {newName} As{newName}(this {hostClassName} entity)", $"return ({newName})entity;")
-                               , ($"public static {hostClassName} As{hostClassName}(this {newName} dto)", $"return ({hostClassName})dto;")
-                               , ($"public static IEnumerable<{newName}> As{newName}(this IEnumerable<{hostClassName}> entity)"
-                                , $"return  entity.Select(x=>x.As{newName}());")
-                               , ($"public static IEnumerable<{hostClassName}> As{hostClassName}(this IEnumerable<{newName}> dtos)"
-                                , $"return dtos.Select(x=>x.As{hostClassName}());")
-                             };
+        {
+            ($"public static {newName} As{entName}(this {hostClassName} entity)", $"return ({newName})entity;")
+          , ($"public static {hostClassName} AsData(this {newName} dto)", $"return ({hostClassName})dto;")
+
+          , ($"public static IEnumerable<{newName}> As{entName}(this IEnumerable<{hostClassName}> entity)", $"return  entity.Select(x=>x.As{entName}());")
+
+          , ($"public static IEnumerable<{hostClassName}> AsData(this IEnumerable<{newName}> dtos)", $"return dtos.Select(x=>x.AsData());")
+        };
         yield return $"public static class {newName}Extensions";
         yield return "{";
         foreach (var methodDescr in methodSyntaxes)
@@ -74,9 +77,8 @@ public abstract class AbstractDtoHandler<T> : IDtoHandler<T> where T : SyntaxNod
 
     protected IEnumerable<string> AddOperators(IEnumerable<string> fields, IEnumerable<string> ignored, string fromStr, string toStr)
     {
-        var dataFields = fields
-                        .Select(x => $"{x}{AssignConstructorSymbol(toStr)}b.{x}")
-                        .ToList();
+        var dataFields = fields.Select(x => $"{x}{AssignConstructorSymbol(toStr)}b.{x}")
+                               .ToList();
         foreach (var s in ignored)
         {
             dataFields.Add(s);
@@ -131,15 +133,15 @@ public abstract class AbstractDtoHandler<T> : IDtoHandler<T> where T : SyntaxNod
         }
 
         var add = propType.Trim() switch
-                  {
-                      nameof(Guid)                                => $"{nameof(Guid)}.{nameof(Guid.NewGuid)}()"
-                    , nameof(DateTimeOffset)                      => $"{nameof(DateTimeOffset)}.{nameof(DateTimeOffset.Now)}"
-                    , nameof(DateTime)                            => $"{nameof(DateTime)}.{nameof(DateTime.Now)}"
-                    , var str when str.StartsWith("List<")        => $"new()"
-                    , var str when str.StartsWith("Dictionary<")  => $"new()"
-                    , var str when str.StartsWith("IEnumerable<") => $"new {getEnumerableCreation(str)}()"
-                    , _                                           => ""
-                  };
+        {
+            nameof(Guid) => $"{nameof(Guid)}.{nameof(Guid.NewGuid)}()"
+          , nameof(DateTimeOffset) => $"{nameof(DateTimeOffset)}.{nameof(DateTimeOffset.Now)}"
+          , nameof(DateTime) => $"{nameof(DateTime)}.{nameof(DateTime.Now)}"
+          , var str when str.StartsWith("List<") => $"new()"
+          , var str when str.StartsWith("Dictionary<") => $"new()"
+          , var str when str.StartsWith("IEnumerable<") => $"new {getEnumerableCreation(str)}()"
+          , _ => ""
+        };
         if (string.IsNullOrEmpty(add) || string.IsNullOrEmpty(name))
         {
             return "";
@@ -151,46 +153,45 @@ public abstract class AbstractDtoHandler<T> : IDtoHandler<T> where T : SyntaxNod
     protected abstract IEnumerable<string> AddProps(IEnumerable<string> fields, string name, string dtoName, bool set);
 
 
-
-
-
-
-
-
     protected bool CollectAttributeAgrs(DtoGeneratorAttribute attr, out List<string> attrValues)
     {
+        _suffix = attr.Suffix;
         attrValues = attr.Arguments.Select(x => x.Expression.ToString())
-                         .Select(x => x.Replace("nameof(", "").Replace(")", "").Replace($"\"", ""))
+                         .Select(x => x.Replace("nameof(", "")
+                                       .Replace(")", "")
+                                       .Replace($"\"", ""))
                          .ToList();
         if (attrValues.Count < 1)
         {
             return false;
         }
 
+        _prefix = attrValues.First();
+
         return true;
     }
 
     protected (List<string> ignorProps, string newName, string namespaceName) GetCreateionData(SyntaxNode syntax, List<string> attrValues)
     {
-        return (attrValues.Skip(1).ToList(), $"{attrValues.First()}{syntax.GetName()}Dto", GetNamespaceName(syntax));
+        return (attrValues.Skip(1)
+                          .ToList(), $"{_prefix}{syntax.GetName()}{_suffix}", GetNamespaceName(syntax));
     }
 
 
-
     protected ( List<SyntaxNode>? nodes, List<string>? props, List<SyntaxNode>? ignored) CollectRecordFields(RecordDeclarationSyntax rce
-                                                                                                           , List<string> ignorProps)
+  , List<string> ignorProps)
     {
         List<string> dd = new();
         List<SyntaxNode> membersData = new();
         List<SyntaxNode> ignored = new();
         if (rce.Members is { Count: > 0 } members)
         {
-            ignored = members
-                     .Where(x => ignorProps.Any(y => x.GetName().Equals(y)))
-                     .ToList<SyntaxNode>();
-            membersData = members
-                         .Where(x => !ignorProps.Any(y => x.GetName().Equals(y)))
-                         .ToList<SyntaxNode>();
+            ignored = members.Where(x => ignorProps.Any(y => x.GetName()
+                                                              .Equals(y)))
+                             .ToList<SyntaxNode>();
+            membersData = members.Where(x => !ignorProps.Any(y => x.GetName()
+                                                                   .Equals(y)))
+                                 .ToList<SyntaxNode>();
             dd = membersData.Select(x => x.ToString())
                             .ToList();
             if (dd.Count < 1)
@@ -201,11 +202,11 @@ public abstract class AbstractDtoHandler<T> : IDtoHandler<T> where T : SyntaxNod
 
         if (rce.ParameterList is { } pars)
         {
-            ignored = pars.Parameters
-                          .Where(x => ignorProps.Any(y => x.GetName().Equals(y)))
+            ignored = pars.Parameters.Where(x => ignorProps.Any(y => x.GetName()
+                                                                      .Equals(y)))
                           .ToList<SyntaxNode>();
-            var parameters = pars.Parameters
-                                 .Where(x => !ignorProps.Any(y => x.GetName().Equals(y)))
+            var parameters = pars.Parameters.Where(x => !ignorProps.Any(y => x.GetName()
+                                                                              .Equals(y)))
                                  .ToArray();
             membersData.AddRange(parameters);
             dd = parameters.Select(x => $"{GetAttributes(x)}public {x.Type} {x.GetName()} {{get;init;}}")
@@ -217,14 +218,12 @@ public abstract class AbstractDtoHandler<T> : IDtoHandler<T> where T : SyntaxNod
 
     private string GetAttributes(ParameterSyntax parameterSyntax)
     {
-        return parameterSyntax.AttributeLists.Select(x => x.ToString()).PipeO(x => string.Join(" ", x));
+        return parameterSyntax.AttributeLists.Select(x => x.ToString())
+                              .PipeO(x => string.Join(" ", x));
     }
 
-    protected DtoGenerator.SourceData GenerateSyntax(string namespaceName
-                                                   , string dtoName
-                                                   , IEnumerable<string> propertyDescriptions
-                                                   , IEnumerable<string>  propertyNames
-                                                   , List<string>? ignoredPropsSyntax)
+    protected DtoGenerator.SourceData GenerateSyntax(string namespaceName, string dtoName, IEnumerable<string> propertyDescriptions
+  , IEnumerable<string> propertyNames, List<string>? ignoredPropsSyntax)
     {
         var builder = new SourceBuilder();
         builder.WriteLine("using System.ComponentModel;")
@@ -234,14 +233,8 @@ public abstract class AbstractDtoHandler<T> : IDtoHandler<T> where T : SyntaxNod
                .WriteLine($"public {GetDataType()} {dtoName}")
                .OpenBrace()
                .WriteLines(propertyDescriptions)
-               .WriteLinesWithOffset(AddOperators(propertyNames
-                                                , ignoredPropsSyntax
-                                                , dtoName
-                                                , _currentNodeName))
-               .WriteLinesWithOffset(AddOperators(propertyNames
-                                                , Array.Empty<string>()
-                                                , _currentNodeName
-                                                , dtoName))
+               .WriteLinesWithOffset(AddOperators(propertyNames, ignoredPropsSyntax, dtoName, _currentNodeName))
+               .WriteLinesWithOffset(AddOperators(propertyNames, Array.Empty<string>(), _currentNodeName, dtoName))
                .WriteLinesWithOffset(AddProps(propertyNames, dtoName, _currentNodeName, true))
                .WriteLinesWithOffset(AddProps(propertyNames, dtoName, _currentNodeName, false))
                .CloseBrace()

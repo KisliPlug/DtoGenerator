@@ -61,7 +61,11 @@ public class DtoGeneratorAttribute
     public DtoGeneratorAttribute(AttributeSyntax attr)
     {
         Arguments = attr.ArgumentList!.Arguments;
+        Suffix = attr.Name.ToString().Replace(nameof(Attribute),"");
+
     }
+
+    public string Suffix { get; set; }
 
 #region Private fields
 
